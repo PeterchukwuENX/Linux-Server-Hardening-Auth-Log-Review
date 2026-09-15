@@ -5,8 +5,8 @@ This is a small project where I set up an Ubuntu server from scratch, locked it 
 The idea was to go past just knowing hardening steps as a checklist and actually see what the "before and after" looks like from a defender's point of view — what the server allows by default, what changes when you lock it down, and what a failed login attempt actually looks like once you're the one reading the logs instead of causing them.
 
 What's in here
-- **hardening-checklist.md** — every change I made to the server, why it matters, and the command used
-- **detection-notes.md** — my writeup after generating some failed login attempts against my own server and reading through the resulting logs: what I saw, how I'd tell normal noise from something worth escalating
+-hardening-checklist — every change I made to the server, why it matters, and the command used
+-detection-notes — my writeup after generating some failed login attempts against my own server and reading through the resulting logs: what I saw, how I'd tell normal noise from something worth escalating
 
 Why I built this
 This is part of my path toward a SOC analyst role. A lot of that job is reading logs and making a judgment call on what's actually worth flagging — this project was my first attempt at doing that end to end, on infrastructure I built and secured myself.
