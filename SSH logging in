@@ -1,0 +1,21 @@
+SSH Access: Getting In From My Host Machine
+
+What happened
+After confirming SSH was running inside the VM, I tried connecting to it from my actual host machine's terminal using the VM's internal IP (10.0.2.15) - and got a connection timeout.
+
+Why
+VirtualBox's default NAT networking mode lets the VM reach out to the internet, but blocks anything from reaching *in* to the VM from the host. That's not a misconfiguration, it's just how NAT isolates the VM by default - so the timeout made sense once I understood what NAT mode actually does.
+
+The fix
+Set up a port forwarding rule in VirtualBox: host port 2222 -> guest port 22 (SSH's default port). This tells VirtualBox to forward any connection attempt on my host's port 2222 straight into the VM's SSH port.
+
+Connected successfully with:
+ssh <username>@localhost -p 2222
+
+Why this matters for security (not just "it works now")
+Getting this working raised a real question: is this safe? Breaking it down:
+- Right now this is only reachable from my own host machine, and potentially other devices on the same home network - not the wider internet, since I haven't touched my actual router's settings.
+- The real risk isn't the port forwarding itself, it's that I'm still using password-based SSH login. Anyone who could reach this port could attempt to brute-force the password.
+- This is exactly the reasoning behind the next phase of this project: disabling password SSH auth in favor of key-based login, and using ufw to control what's allowed to connect at all.
+
+Getting the timeout and having to think through *why* it happened taught me more about NAT and exposure than if it had just worked first try.
