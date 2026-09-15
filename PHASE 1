@@ -1,0 +1,21 @@
+Phase 1: Server Setup
+
+What I did
+Built a fresh Ubuntu Server 24.04 LTS virtual machine in VirtualBox to use as a lab environment for practicing server hardening and log analysis — the first step toward having something real to secure and monitor, instead of just reading about it.
+
+Steps taken
+
+1. Created a new VM in VirtualBox (2GB RAM, 20GB disk) and attached the Ubuntu Server 24.04.5 LTS ISO.
+2. Ran through the Ubuntu installer — default networking, used the whole disk since it was a fresh VM with nothing to lose.
+3. The installer didn't give me the option to enable OpenSSH server during setup (some installer flows show it, mine didn't), so I installed it manually after logging in:
+   sudo apt update
+   sudo apt install openssh-server -y
+   
+4. Checked the service and found it wasn't running yet, so I started it:
+   sudo systemctl status ssh
+   sudo systemctl start ssh
+   
+5. The default account VirtualBox/Ubuntu had me set up during install was named "vboxuser" — not something I wanted to keep long-term, so I created a proper named user with sudo (admin) privileges instead, rather than trying to rename the existing account:
+   sudo adduser <username>
+   sudo usermod -aG sudo <username>
+   
