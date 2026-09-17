@@ -1,0 +1,37 @@
+Detection Notes: Reading My Own Auth Log
+
+So after locking the server down (keys only, no more passwords, firewall only letting port 22 through), I wanted to actually see it work, not just trust that it works. So I threw some failed logins at my own VM on purpose - a couple of fake usernames, and tried forcing a password login even though I'd just disabled that - and then went and read what actually landed in the log.
+
+The log
+
+Pulled this with sudo tail -25 /var/log/auth.log:
+
+2026-09-17T20:18:52 sshd: Invalid user paul from 10.0.2.2 port 50172
+2026-09-17T20:18:52 sshd: Connection reset by invalid user paul 10.0.2.2 port 50172 [preauth]
+2026-09-17T20:18:55 sshd: Invalid user paul from 10.0.2.2 port 50175
+2026-09-17T20:18:55 sshd: Connection reset by invalid user paul 10.0.2.2 port 50175 [preauth]
+2026-09-17T20:18:59 sshd: Invalid user paul from 10.0.2.2 port 50177
+2026-09-17T20:18:59 sshd: Connection reset by invalid user paul 10.0.2.2 port 50177 [preauth]
+2026-09-17T20:20:49 sshd: Connection reset by authenticating user kenny 10.0.2.2 port 50184 [preauth]
+2026-09-17T20:20:56 sshd: Connection reset by authenticating user kenny 10.0.2.2 port 50186 [preauth]
+2026-09-17T20:22:20 sshd: Invalid user admin from 10.0.2.2 port 50188
+2026-09-17T20:22:20 sshd: Connection reset by invalid user admin 10.0.2.2 port 50188 [preauth]
+2026-09-17T20:22:43 sshd: Connection reset by authenticating user root 10.0.2.2 port 50190 [preauth]
+2026-09-17T20:23:27 sshd: Connection reset by authenticating user kenny 10.0.2.2 port 50192 [preauth]
+What I actually saw
+
+The "Invalid user paul" and "Invalid user admin" lines are the easy ones - those usernames don't exist on my server at all, so SSH just rejects them on the spot.
+
+The more interesting ones are "authenticating user kenny" and "authenticating user root" - kenny is a real account (it's literally me), and root always exists on Linux. These are the attempts where I tried to force a password login. And they got cut off too, before a password prompt even showed up - because I'd already disabled password auth in Phase 2. Seeing that actually happen in the log, not just assuming my config change worked, felt like the whole point of this exercise.
+
+Every line ends in [preauth], meaning none of these ever got past the login stage at all.
+
+Is this something to worry about?
+
+Not really, and here's how I'd actually justify that instead of just saying "it's fine": every attempt came from 10.0.2.2, which is just my own host machine talking to the VM through VirtualBox's NAT setup. Same source, all within about 5 minutes. That's basically a fingerprint for "this is me testing something," not an attacker.
+
+If this were a real server and I saw this exact pattern from an IP I didn't recognize, that's when I'd actually pay attention - especially if it kept going for hours instead of minutes, hit a longer list of usernames, or that IP came back with a bad reputation on something like AbuseIPDB. One IP, a handful of attempts, five minutes, known source - that's noise. Sustained, unfamiliar, escalating - that's a problem.
+
+What I got out of this
+
+Honestly, the useful part wasn't the log reading itself, it was watching my earlier hardening actually do something. I disabled password auth in Phase 2 and just kind of trusted it worked. This is the part where I got to check that it did.
