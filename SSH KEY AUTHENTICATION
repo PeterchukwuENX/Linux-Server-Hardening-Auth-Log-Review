@@ -1,0 +1,29 @@
+Phase 2: SSH Key Authentication
+
+What I did
+Swapped password-based SSH login for key-based login, then killed password login completely. Now the only way into this server is having the matching private key sitting on my machine.
+
+Why I bothered with this
+Leaving password login on means anyone who reaches the SSH port can just sit there guessing passwords over and over - that's a brute-force attack, and it's honestly not that hard to pull off against a weak password. Keys flip the whole thing around: instead of "something you know" (a password, which can be guessed), it's "something you have" (a private key file that never leaves my computer). No password on the table means nothing to brute-force in the first place.
+
+What I actually did, step by step
+First, generated a key pair on my Windows machine:
+    ssh-keygen -t ed25519 -C "soc-lab-key"
+
+This spits out two files - a private key that stays put on my machine, and a public key (the one ending in .pub) that's fine to hand out.
+
+Windows doesn't ship with `ssh-copy-id` like Linux/Mac do, so I had to do the copying part by hand:
+- Printed the public key to my screen: `type $env:USERPROFILE\.ssh\id_ed25519.pub`
+- Logged into the VM with my password one last time
+- Made a `.ssh` folder on the VM and locked it down: `mkdir -p ~/.ssh && chmod 700 ~/.ssh`
+- Pasted the public key into the VM's authorized_keys file: `echo "<public key>" >> ~/.ssh/authorized_keys`
+- Locked that file down too: `chmod 600 ~/.ssh/authorized_keys`
+
+Logged out, logged back in - no password prompt. Key login was working.
+
+Then went into `/etc/ssh/sshd_config` (`sudo nano /etc/ssh/sshd_config`) and set:
+PasswordAuthentication no
+
+Restarted SSH (`sudo systemctl restart ssh`), but didn't close my working session first - opened a brand new terminal window and tested the connection there instead, so I wouldn't get locked out if I'd messed something up in the config.
+
+Fresh terminal, key login, no password prompt. Confirmed working.
